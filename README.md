@@ -1,2 +1,3 @@
-# discord_bot
- Coffee Shop Discord.py Bot
+# A discord bot made in python for running a virtual coffee shop
+ Yep.
+ 

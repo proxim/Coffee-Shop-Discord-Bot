@@ -265,7 +265,7 @@ async def leaderboard(ctx):
     embed.title = ':coffee: *Coffee Bean Leaderboards* :coffee:'
     desc = ''
     for i, (name, beans) in enumerate(lb):
-        if i < 10 and name != 'SALINUS#1518': # really shitty code here but whatever
+        if i < 10 and i != 0: # really shitty code here but whatever
             desc += f'{i}.   **{name}** - *{beans} beans*\n'
             #embed.add_field(name=f'{i+1}. {name} - {beans} beans', value=f' ', inline=False)
     embed.description = desc
@@ -435,12 +435,6 @@ async def loop_beans():
 
 
 
-
-#=======================NON COFFEE STUFF HERE=======================
-
-
-
-
 @bot.command(name='clear')
 @commands.has_any_role('Brewmaster', 'Caffeine Addict', 'Pumpkin Spice Latte')
 async def clear(ctx, amount=10):
@@ -453,27 +447,42 @@ async def clear(ctx, amount=10):
 @commands.has_any_role('Brewmaster', 'Regular', 'Caffeine Addict')
 async def nuke(ctx, nuke_count: int, *targets):
     '''
-    Sends specified number of nuke dms to target(s).
+    Sends specified number of nuke dms to target(s) for 300 credits.
     Must be 'Brewmaster' or 'Regular' to use this command.
     '''
-    if nuke_count < 0:
-        return
+    user = ctx.message.author
+    coffee_cog = bot.get_cog('CoffeeCog')
+    users = get_users(user_data)
+
+    cost = 300
     NUKE_LIMIT = 30
     allowed_channels = ['robo-waiter', 'the-room-where-it-happens']
+
+    if nuke_count < 0:
+        return
+
+    if coffee_cog.get_beans(users, user) < cost:
+        await ctx.send('You are too poor to nuke.')
+        return
+    
+    await coffee_cog.update_data(users, user)
+    await coffee_cog.add_beans(users, user, -1*cost)
+
     if ctx.channel.name in allowed_channels:
         nuke_amount = NUKE_LIMIT if nuke_count > NUKE_LIMIT else nuke_count
         if ctx.message.mentions:
             await ctx.send(':rotating_light: NUKE INITIATED :rotating_light: ')
             for target_member in ctx.message.mentions:
                 for i in range(nuke_amount):
-                    await target_member.send(f':bomb: YOU HAVE BEEN NUKED BY {ctx.message.author}!!! :bomb:')
-                logger.info(f'{ctx.message.author} nuked {target_member} {nuke_amount} times from channel: {ctx.channel.name}.')
+                    await target_member.send(f':bomb: YOU HAVE BEEN NUKED BY {user}!!! :bomb:')
+                logger.info(f'{user} nuked {target_member} {nuke_amount} times from channel: {ctx.channel.name}.')
         else:
             await ctx.send('No targets specified.')
-            logger.info(f'{ctx.message.author} tried to nuke with no targets in: {ctx.channel.name} and failed.')
+            logger.info(f'{user} tried to nuke with no targets in: {ctx.channel.name} and failed.')
     else:
         await ctx.send('You do not have access to the launch system.')
-        logger.info(f'{ctx.message.author} tried to nuke in an invalid channel: {ctx.channel.name} and failed.')
+        logger.info(f'{user} tried to nuke in an invalid channel: {ctx.channel.name} and failed.')
+    save_users(user_data, users)
 @nuke.error
 async def nuke_error(ctx, error):
     if isinstance(error, commands.BadArgument):
@@ -483,6 +492,14 @@ async def nuke_error(ctx, error):
     if isinstance(error, commands.MissingAnyRole):
         await ctx.send('I\'m afraid you do not have access to nukes. Sincere apologies.')
     logger.warning(f'AUTHOR: {ctx.message.author} | METHOD: nuke | ERROR: {error}')
+
+
+
+
+####################################################################
+#=======================NON COFFEE STUFF HERE=======================
+####################################################################
+
 
 
 
@@ -522,9 +539,9 @@ async def setmood(ctx, mood):
     Outputs a scenic setting exposition followed by joining vc and playing matching soundscape.
     Perfect for sleeping or studying.
     Join a voice channel for the full effect.
-    Options include: 'fall', 'nature', 'rain', 'summer'
+    Options include: 'fall', 'nature', 'rain', 'summer', 'jazz', 'synthwave'
     '''
-    moods = ['fall', 'nature', 'rain', 'summer']
+    moods = ['fall', 'nature', 'rain', 'summer', 'jazz', 'synthwave']
     member = ctx.message.author
     
     if mood in moods:
@@ -613,13 +630,6 @@ async def sendmelody_error(ctx, error):
     if isinstance(error, commands.BadArgument):
         await ctx.send('I\'m sorry, but your target is invalid.')
     logger.warning(f'AUTHOR: {ctx.message.author} | METHOD: sendmelody | ERROR: {error}')
-
-
-# IDEAS: typing race
-# Birthday keep tracker
-# wake me up timer
-# ai chatbot
-# currency system, betting
 
 
 if __name__ == '__main__':

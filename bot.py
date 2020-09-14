@@ -181,6 +181,9 @@ async def gamble(ctx, amount: int, color):
                 msg = 'You won!'
             else:
                 msg = f'It landed on {result}. You lost...'
+                if amount >= 10000: 
+                    role = get(user.guild.roles, name='Unlucky')
+                    await user.add_roles(role)
 
             beans = coffee_cog.get_beans(users, user)
             await ctx.send(f'{msg} You now have {beans} coffee beans.')
@@ -286,6 +289,7 @@ async def shop(ctx):
 
     items = [
         ('Change nickname', '--changenick |\n 50 coffee beans'),
+        ('Nuke someone', '--nuke |\n 300 coffee beans'),
         ('Become a regular!', '--regular |\n 1000 coffee beans'),
         ('Become a caffeine addict!', '--caffeineaddict |\n 7500 coffee beans'),
         ('Become a pumpkin spice latte!', '--pumpkinspice |\n 40,000 coffee beans')

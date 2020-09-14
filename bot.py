@@ -159,6 +159,7 @@ async def gamble(ctx, amount: int, color):
         return
     
     colors = ['red', 'black', 'green']
+    rolename = 'Unlucky'
 
     if coffee_cog.get_beans(users, user) >= amount >= 50:
         if color in colors:
@@ -181,8 +182,8 @@ async def gamble(ctx, amount: int, color):
                 msg = 'You won!'
             else:
                 msg = f'It landed on {result}. You lost...'
-                if amount >= 10000: 
-                    role = get(user.guild.roles, name='Unlucky')
+                if amount >= 10000 and not rolename in [roles.name for roles in user.roles]: 
+                    role = get(user.guild.roles, name=rolename)
                     await user.add_roles(role)
 
             beans = coffee_cog.get_beans(users, user)
@@ -268,7 +269,7 @@ async def leaderboard(ctx):
     embed.title = ':coffee: *Coffee Bean Leaderboards* :coffee:'
     desc = ''
     for i, (name, beans) in enumerate(lb):
-        if i < 10 and i != 0: # really shitty code here but whatever
+        if i < 12 and i != 0: # really shitty code here but whatever
             desc += f'{i}.   **{name}** - *{beans} beans*\n'
             #embed.add_field(name=f'{i+1}. {name} - {beans} beans', value=f' ', inline=False)
     embed.description = desc

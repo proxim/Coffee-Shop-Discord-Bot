@@ -66,18 +66,6 @@ async def secret_message(message):
         resp = ''
     if name == 'ctrl_alt_del' and '' in message:
         resp = ''
-    if name == 'adri' and '' in message:
-        resp = ''
-    if name == 'adri' and '' in message:
-        resp = ''
-    if name == 'adri' and '' in message:
-        resp = ''
-    if name == 'adri' and '' in message:
-        resp = ''
-    if name == 'adri' and '' in message:
-        resp = ''
-    if name == 'adri' and '' in message:
-        resp = ''
 '''
 @bot.event
 async def on_message(message):

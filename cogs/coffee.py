@@ -24,6 +24,8 @@ class CoffeeCog(commands.Cog):
             users[user.id]['last_daily'] = DATETIME_DEFAULT
             users[user.id]['last_rob'] = DATETIME_DEFAULT
             users[user.id]['inventory'] = {}
+
+        
     
     @staticmethod
     def get_beans(users, user):

@@ -55,9 +55,30 @@ async def on_member_join(member):
     logger.info(f'{member} joined the server.')
     role = get(member.guild.roles, name='Customer')
     await member.add_roles(role)
-
-
-
+'''
+async def secret_message(message):
+    name = message.author
+    if name == 'adri' and '' in message:
+        resp = ''
+    if name == 'maqic' and '' in message:
+        resp = ''
+    if name == 'Beianp' and '' in message:
+        resp = ''
+    if name == 'ctrl_alt_del' and '' in message:
+        resp = ''
+    if name == 'adri' and '' in message:
+        resp = ''
+    if name == 'adri' and '' in message:
+        resp = ''
+    if name == 'adri' and '' in message:
+        resp = ''
+    if name == 'adri' and '' in message:
+        resp = ''
+    if name == 'adri' and '' in message:
+        resp = ''
+    if name == 'adri' and '' in message:
+        resp = ''
+'''
 @bot.event
 async def on_message(message):
     if message.author == bot.user:
@@ -182,6 +203,7 @@ async def gamble(ctx, amount: int, color):
                 msg = 'You won!'
             else:
                 msg = f'It landed on {result}. You lost...'
+                # get the unlucky role if you gamble over 10k and lose
                 if amount >= 10000 and not rolename in [roles.name for roles in user.roles]: 
                     role = get(user.guild.roles, name=rolename)
                     await user.add_roles(role)
@@ -203,10 +225,10 @@ async def gamble_error(ctx, error):
 @bot.command(name='dailybeans', aliases=['daily'])
 async def dailybeans(ctx):
     '''
-    Collect your daily 100 coffee beans.
+    Collect your daily 200 coffee beans.
     Available every 22 hours.
     '''
-    daily_amount = 100
+    daily_amount = 200
 
     user = ctx.message.author
     coffee_cog = bot.get_cog('CoffeeCog')
@@ -274,6 +296,7 @@ async def leaderboard(ctx):
             #embed.add_field(name=f'{i+1}. {name} - {beans} beans', value=f' ', inline=False)
     embed.description = desc
     await ctx.send(embed=embed)
+    logger.info(f'{ctx.message.author} requested to see the leaderboard in {ctx.channel.name}')
 
 
 
@@ -300,6 +323,7 @@ async def shop(ctx):
         embed.add_field(name=name, value=value, inline=True)
 
     await ctx.send(embed=embed)
+    logger.info(f'{ctx.message.author} requested to see the shop in {ctx.channel.name}')
 
 
 
@@ -422,7 +446,7 @@ async def migrate(ctx):
 @tasks.loop(seconds=30.0)
 async def loop_beans():
     '''
-    Every 15 seconds gives everyone in vc 1 bean.
+    Every 30 seconds gives everyone in vc 1 bean.
     '''
     coffee_cog = bot.get_cog('CoffeeCog')
     users = get_users(user_data)
@@ -476,7 +500,7 @@ async def nuke(ctx, nuke_count: int, *targets):
     if ctx.channel.name in allowed_channels:
         nuke_amount = NUKE_LIMIT if nuke_count > NUKE_LIMIT else nuke_count
         if ctx.message.mentions:
-            await ctx.send(':rotating_light: NUKE INITIATED :rotating_light: ')
+            await ctx.send(':rotating_light: NUKE INITIATED :rotating_light:')
             for target_member in ctx.message.mentions:
                 for i in range(nuke_amount):
                     await target_member.send(f':bomb: YOU HAVE BEEN NUKED BY {user}!!! :bomb:')
@@ -506,6 +530,30 @@ async def nuke_error(ctx, error):
 ####################################################################
 
 
+
+@bot.command(name='rng')
+async def rng(ctx, start: int, end: int):
+    '''
+    Generates a random integer in interval [start, end].
+    '''
+    embed = discord.Embed()
+    embed.title = 'Your Random Number'
+    embed.description = random.randint(start, end)
+    await ctx.send(embed=embed)
+@rng.error
+async def rng_error(ctx, error):
+    logger.warning(f'AUTHOR: {ctx.message.author} | METHOD: rng | ERROR: {error}')
+
+@bot.command(name='bday')
+@commands.has_any_role('Brewmaster')
+async def bday(ctx):
+    '''
+    Plays the happy birthday song.
+    '''
+    video = 'happy birthday'
+    music_cog = bot.get_cog('MusicCog')
+    await music_cog.join(ctx)
+    await music_cog.play(ctx, query=video)
 
 
 @bot.command(name='quote')

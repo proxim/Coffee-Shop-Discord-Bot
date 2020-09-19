@@ -55,9 +55,18 @@ async def on_member_join(member):
     logger.info(f'{member} joined the server.')
     role = get(member.guild.roles, name='Customer')
     await member.add_roles(role)
-
-
-
+'''
+async def secret_message(message):
+    name = message.author
+    if name == 'adri' and '' in message:
+        resp = ''
+    if name == 'maqic' and '' in message:
+        resp = ''
+    if name == 'Beianp' and '' in message:
+        resp = ''
+    if name == 'ctrl_alt_del' and '' in message:
+        resp = ''
+'''
 @bot.event
 async def on_message(message):
     if message.author == bot.user:
@@ -159,6 +168,7 @@ async def gamble(ctx, amount: int, color):
         return
     
     colors = ['red', 'black', 'green']
+    rolename = 'Unlucky'
 
     if coffee_cog.get_beans(users, user) >= amount >= 50:
         if color in colors:
@@ -181,6 +191,10 @@ async def gamble(ctx, amount: int, color):
                 msg = 'You won!'
             else:
                 msg = f'It landed on {result}. You lost...'
+                # get the unlucky role if you gamble over 10k and lose
+                if amount >= 10000 and not rolename in [roles.name for roles in user.roles]: 
+                    role = get(user.guild.roles, name=rolename)
+                    await user.add_roles(role)
 
             beans = coffee_cog.get_beans(users, user)
             await ctx.send(f'{msg} You now have {beans} coffee beans.')
@@ -199,10 +213,10 @@ async def gamble_error(ctx, error):
 @bot.command(name='dailybeans', aliases=['daily'])
 async def dailybeans(ctx):
     '''
-    Collect your daily 100 coffee beans.
+    Collect your daily 200 coffee beans.
     Available every 22 hours.
     '''
-    daily_amount = 100
+    daily_amount = 200
 
     user = ctx.message.author
     coffee_cog = bot.get_cog('CoffeeCog')
@@ -265,11 +279,12 @@ async def leaderboard(ctx):
     embed.title = ':coffee: *Coffee Bean Leaderboards* :coffee:'
     desc = ''
     for i, (name, beans) in enumerate(lb):
-        if i < 10 and name != 'SALINUS#1518': # really shitty code here but whatever
+        if i < 12 and i != 0: # really shitty code here but whatever
             desc += f'{i}.   **{name}** - *{beans} beans*\n'
             #embed.add_field(name=f'{i+1}. {name} - {beans} beans', value=f' ', inline=False)
     embed.description = desc
     await ctx.send(embed=embed)
+    logger.info(f'{ctx.message.author} requested to see the leaderboard in {ctx.channel.name}')
 
 
 
@@ -286,6 +301,7 @@ async def shop(ctx):
 
     items = [
         ('Change nickname', '--changenick |\n 50 coffee beans'),
+        ('Nuke someone', '--nuke |\n 300 coffee beans'),
         ('Become a regular!', '--regular |\n 1000 coffee beans'),
         ('Become a caffeine addict!', '--caffeineaddict |\n 7500 coffee beans'),
         ('Become a pumpkin spice latte!', '--pumpkinspice |\n 40,000 coffee beans')
@@ -295,6 +311,7 @@ async def shop(ctx):
         embed.add_field(name=name, value=value, inline=True)
 
     await ctx.send(embed=embed)
+    logger.info(f'{ctx.message.author} requested to see the shop in {ctx.channel.name}')
 
 
 
@@ -417,7 +434,7 @@ async def migrate(ctx):
 @tasks.loop(seconds=30.0)
 async def loop_beans():
     '''
-    Every 15 seconds gives everyone in vc 1 bean.
+    Every 30 seconds gives everyone in vc 1 bean.
     '''
     coffee_cog = bot.get_cog('CoffeeCog')
     users = get_users(user_data)
@@ -435,12 +452,6 @@ async def loop_beans():
 
 
 
-
-#=======================NON COFFEE STUFF HERE=======================
-
-
-
-
 @bot.command(name='clear')
 @commands.has_any_role('Brewmaster', 'Caffeine Addict', 'Pumpkin Spice Latte')
 async def clear(ctx, amount=10):
@@ -453,27 +464,42 @@ async def clear(ctx, amount=10):
 @commands.has_any_role('Brewmaster', 'Regular', 'Caffeine Addict')
 async def nuke(ctx, nuke_count: int, *targets):
     '''
-    Sends specified number of nuke dms to target(s).
+    Sends specified number of nuke dms to target(s) for 300 credits.
     Must be 'Brewmaster' or 'Regular' to use this command.
     '''
-    if nuke_count < 0:
-        return
+    user = ctx.message.author
+    coffee_cog = bot.get_cog('CoffeeCog')
+    users = get_users(user_data)
+
+    cost = 300
     NUKE_LIMIT = 30
     allowed_channels = ['robo-waiter', 'the-room-where-it-happens']
+
+    if nuke_count < 0:
+        return
+
+    if coffee_cog.get_beans(users, user) < cost:
+        await ctx.send('You are too poor to nuke.')
+        return
+    
+    await coffee_cog.update_data(users, user)
+    await coffee_cog.add_beans(users, user, -1*cost)
+
     if ctx.channel.name in allowed_channels:
         nuke_amount = NUKE_LIMIT if nuke_count > NUKE_LIMIT else nuke_count
         if ctx.message.mentions:
-            await ctx.send(':rotating_light: NUKE INITIATED :rotating_light: ')
+            await ctx.send(':rotating_light: NUKE INITIATED :rotating_light:')
             for target_member in ctx.message.mentions:
                 for i in range(nuke_amount):
-                    await target_member.send(f':bomb: YOU HAVE BEEN NUKED BY {ctx.message.author}!!! :bomb:')
-                logger.info(f'{ctx.message.author} nuked {target_member} {nuke_amount} times from channel: {ctx.channel.name}.')
+                    await target_member.send(f':bomb: YOU HAVE BEEN NUKED BY {user}!!! :bomb:')
+                logger.info(f'{user} nuked {target_member} {nuke_amount} times from channel: {ctx.channel.name}.')
         else:
             await ctx.send('No targets specified.')
-            logger.info(f'{ctx.message.author} tried to nuke with no targets in: {ctx.channel.name} and failed.')
+            logger.info(f'{user} tried to nuke with no targets in: {ctx.channel.name} and failed.')
     else:
         await ctx.send('You do not have access to the launch system.')
-        logger.info(f'{ctx.message.author} tried to nuke in an invalid channel: {ctx.channel.name} and failed.')
+        logger.info(f'{user} tried to nuke in an invalid channel: {ctx.channel.name} and failed.')
+    save_users(user_data, users)
 @nuke.error
 async def nuke_error(ctx, error):
     if isinstance(error, commands.BadArgument):
@@ -484,6 +510,38 @@ async def nuke_error(ctx, error):
         await ctx.send('I\'m afraid you do not have access to nukes. Sincere apologies.')
     logger.warning(f'AUTHOR: {ctx.message.author} | METHOD: nuke | ERROR: {error}')
 
+
+
+
+####################################################################
+#=======================NON COFFEE STUFF HERE=======================
+####################################################################
+
+
+
+@bot.command(name='rng')
+async def rng(ctx, start: int, end: int):
+    '''
+    Generates a random integer in interval [start, end].
+    '''
+    embed = discord.Embed()
+    embed.title = 'Your Random Number'
+    embed.description = random.randint(start, end)
+    await ctx.send(embed=embed)
+@rng.error
+async def rng_error(ctx, error):
+    logger.warning(f'AUTHOR: {ctx.message.author} | METHOD: rng | ERROR: {error}')
+
+@bot.command(name='bday')
+@commands.has_any_role('Brewmaster')
+async def bday(ctx):
+    '''
+    Plays the happy birthday song.
+    '''
+    video = 'happy birthday'
+    music_cog = bot.get_cog('MusicCog')
+    await music_cog.join(ctx)
+    await music_cog.play(ctx, query=video)
 
 
 @bot.command(name='quote')
@@ -522,9 +580,9 @@ async def setmood(ctx, mood):
     Outputs a scenic setting exposition followed by joining vc and playing matching soundscape.
     Perfect for sleeping or studying.
     Join a voice channel for the full effect.
-    Options include: 'fall', 'nature', 'rain', 'summer'
+    Options include: 'fall', 'nature', 'rain', 'summer', 'jazz', 'synthwave'
     '''
-    moods = ['fall', 'nature', 'rain', 'summer']
+    moods = ['fall', 'nature', 'rain', 'summer', 'jazz', 'synthwave']
     member = ctx.message.author
     
     if mood in moods:
@@ -613,13 +671,6 @@ async def sendmelody_error(ctx, error):
     if isinstance(error, commands.BadArgument):
         await ctx.send('I\'m sorry, but your target is invalid.')
     logger.warning(f'AUTHOR: {ctx.message.author} | METHOD: sendmelody | ERROR: {error}')
-
-
-# IDEAS: typing race
-# Birthday keep tracker
-# wake me up timer
-# ai chatbot
-# currency system, betting
 
 
 if __name__ == '__main__':

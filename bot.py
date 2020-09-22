@@ -333,7 +333,7 @@ async def changenick(ctx, nickname):
     if str(user.id) not in users:
         logger.warning(f'{user} is NOT in JSON file but is trying to change nickname.')
     
-    if users[str(user.id)]['beans'] >= cost:
+    if coffee_cog.get_beans(users, user) >= cost:
         await user.edit(nick=nickname)
         await coffee_cog.add_beans(users, user, -1*cost)
         await ctx.send(f'Success {user.mention}!')
@@ -358,7 +358,7 @@ async def buy_role(ctx, cost, rolename):
     if str(user.id) not in users:
         logger.warning(f'{user} is NOT in JSON file but is trying to buy the Regular role.')
 
-    if users[str(user.id)]['beans'] >= cost:
+    if coffee_cog.get_beans(users, user) >= cost:
         if not rolename in [roles.name for roles in user.roles]:
             role = get(user.guild.roles, name=rolename)
             await user.add_roles(role)
@@ -413,8 +413,46 @@ async def pumpkinspice(ctx):
 async def pumpkinspice_error(ctx, error):
     logger.warning(f'AUTHOR: {ctx.message.author} | METHOD: pumpkinspice | ERROR: {error}')
 
+@bot.command(name='order')
+async def order(ctx, drink_name: str, color:str)
+    '''
+    Buy a drink of your choice (obtain the role) for 25,000 beans.
+    --order "drink name" <color e.g. f1f2f3>
+    '''
+    guild = ctx.guild
+    user = ctx.message.author
+    coffee_cog = bot.get_cog('CoffeeCog')
+    users = get_users(user_data)
+    cost = 25000
+    position = 6
+    beans = coffee_cog.get_beans(users, user)
+    color = discord.Colour(f'0x{color}')
+    if str(user.id) not in users:
+        logger.warning(f'{user} is NOT in JSON file but is trying to buy a role.')
+    
+    if beans >= cost:
+        await coffee_cog.add_beans(users, user, -1*cost)
+        # check if role already exists, if not then create it
+        if get(user.guild.roles, name=drink_name) is None:
+            try:
+                await guild.create_role(name=drink_name, hoist=True, color=color)
+            except Exception as e:
+                print(e)
 
+        role = get(user.guild.roles, name=drink_name)
+        await role.edit(position=position)
+        await user.add_roles(role)
+        await ctx.send(f'Congrats! You are now a {drink_name}.')
+        logger.info(f'{user} bought the {drink_name} role.')
 
+    else:
+        await ctx.send(f'You do not have enough beans; you need {cost}.')
+
+    save_users(user_data, users)
+@order.error
+async def order_error(ctx, error):
+    logger.warning(f'AUTHOR: {ctx.message.author} | METHOD: order | ERROR: {error}')
+    
 
 
 @bot.command(name='migrate')

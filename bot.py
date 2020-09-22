@@ -314,6 +314,29 @@ async def leaderboard(ctx):
     await ctx.send(embed=embed)
     logger.info(f'{ctx.message.author} requested to see the leaderboard in {ctx.channel.name}')
 
+@bot.command(name='lossboard', aliases=['Lb'])
+async def lossboard(ctx):
+    '''
+    See the coffee bean top leaderboard.
+    '''
+    coffee_cog = bot.get_cog('CoffeeCog')
+    users = get_users(user_data)
+    await ctx.message.delete()
+    
+    lb = coffee_cog.get_lossboard(users)
+    
+    embed = discord.Embed(color=discord.Color.red())
+    embed.title = ':coffee: *Coffee Bean Lossboards* :coffee:'
+    desc = ''
+    for i, (name, net_loss) in enumerate(lb):
+        if i < 10:
+            desc += f'{i+1}.   **{name}** - *{net_loss} beans*\n'
+            #embed.add_field(name=f'{i+1}. {name} - {beans} beans', value=f' ', inline=False)
+    embed.description = desc
+    await ctx.send(embed=embed)
+    logger.info(f'{ctx.message.author} requested to see the lossboard in {ctx.channel.name}')
+
+
 
 
 @bot.command(name='shop')
@@ -332,6 +355,7 @@ async def shop(ctx):
         ('Nuke someone', '--nuke |\n 300 coffee beans'),
         ('Become a regular!', '--regular |\n 1000 coffee beans'),
         ('Become a caffeine addict!', '--caffeineaddict |\n 7500 coffee beans'),
+        ('Order your own drink!', '--order |\n 25,000 coffee beans')
         ('Become a pumpkin spice latte!', '--pumpkinspice |\n 40,000 coffee beans')
     ]
 
@@ -458,6 +482,10 @@ async def order(ctx, drink_name: str, color:str):
 
     if str(user.id) not in users:
         logger.warning(f'{user} is NOT in JSON file but is trying to buy a role.')
+
+    if drink_name == 'Pumpkin Spice Latte':
+        await ctx.send('You cannot order this drink.')
+        return
     
     if drink_name in [roles.name for roles in user.roles]:
         await ctx.send(f'You are already a {drink_name}.')
@@ -595,6 +623,9 @@ async def nuke_error(ctx, error):
 
 @bot.command(name='8ball')
 async def eball(ctx):
+    '''
+    Get a yes or no from Robo Waiter.
+    '''
     responses = ['Most certainly.', 'Most definitely not.']
     await ctx.message.delete()
     await ctx.send(random.choice(responses))

@@ -51,6 +51,15 @@ class CoffeeCog(commands.Cog):
         leaderboard = sorted(lb, key=lambda v: v[1], reverse=True)
         return leaderboard
 
+    @staticmethod
+    def get_lossboard(users):
+        lb = []
+        for user in users:
+            if users[user]['net_gamble'] < 0:
+                lb.append((users[user]['name'], users[user]['net_gamble']))
+        lossboard = sorted(lb, key=lambda v: v[1], reverse=False)
+        return lossboard
+
 
     @staticmethod
     def next_daily_available_in(users, user):

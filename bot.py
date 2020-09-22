@@ -124,6 +124,29 @@ async def beans_error(ctx, error):
 
 
 
+@bot.command(name='net')
+async def net(ctx):
+    '''
+    Check how many beans you have.
+    '''
+    user = ctx.message.author
+    coffee_cog = bot.get_cog('CoffeeCog')
+    users = get_users(user_data)
+
+    net_gamble = coffee_cog.get_net_gamble(users, user)
+    await ctx.message.delete()
+
+    embed = discord.Embed(color=discord.Color.greyple())
+    embed.description = f'{user.mention}, you have gained {net_gamble} coffee beans through gambling.'
+
+    await ctx.send(embed=embed)
+    logger.info(f'{user} requested to see their net_gamble in {ctx.channel.name}')
+@net.error
+async def net_error(ctx, error):
+    logger.warning(f'AUTHOR: {ctx.message.author} | METHOD: net | ERROR: {error}')
+
+
+
 @bot.command(name='giftbeans', aliases=['gb'])
 async def giftbeans(ctx, amount: int, target):
     '''

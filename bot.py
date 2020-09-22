@@ -174,6 +174,7 @@ async def gamble(ctx, amount: int, color):
         if color in colors:
             await coffee_cog.update_data(users, user)
             await coffee_cog.add_beans(users, user, -1*amount)
+            await coffee_cog.update_net_gamble(users, user, -1*amount)
 
             roll = random.randint(1, 101)
             if roll < 46:
@@ -185,9 +186,11 @@ async def gamble(ctx, amount: int, color):
 
             if color == result and result == 'green':
                 await coffee_cog.add_beans(users, user, 8*amount)
+                await coffee_cog.update_net_gamble(users, user, 8*amount)
                 msg = 'You won the jackpot!'
             elif color == result:
                 await coffee_cog.add_beans(users, user, 2*amount)
+                await coffee_cog.update_net_gamble(users, user, 2*amount)
                 msg = 'You won!'
             else:
                 msg = f'It landed on {result}. You lost...'
@@ -517,7 +520,13 @@ async def nuke_error(ctx, error):
 #=======================NON COFFEE STUFF HERE=======================
 ####################################################################
 
-
+@bot.command(name='8ball')
+async def 8ball(ctx):
+    responses = ['Most certainly.', 'Most definitely not.']
+    await ctx.send(random.choice(responses))
+@8ball.error
+async def 8ball_error(ctx, error):
+    logger.warning(f'AUTHOR: {ctx.message.author} | METHOD: rng | ERROR: {error}')
 
 @bot.command(name='rng')
 async def rng(ctx, start: int, end: int):

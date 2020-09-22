@@ -27,10 +27,11 @@ class CoffeeCog(commands.Cog):
 
     async def migrate_user(self, users, user):
 
-
-        users[user.id]['nickname'] = str(user.nick)
-        users[user.id]['net_gamble'] = 0
-
+        #users[str(user.id)['nickname'] = str(user.nick)
+        try:
+            users[str(user.id)]['net_gamble'] = 0
+        except KeyError as e:
+            pass
     
     @staticmethod
     def get_beans(users, user):
@@ -65,11 +66,11 @@ class CoffeeCog(commands.Cog):
             print('exception', e)
             pass
     async def update_net_gamble(self, users, user, amount):
-    try:
-        users[str(user.id)]['net_gamble'] = int(CoffeeCog.get_net_gamble(users, user)) + amount
-    except Exception as e:
-        print('exception', e)
-        pass
+        try:
+            users[str(user.id)]['net_gamble'] = int(CoffeeCog.get_net_gamble(users, user)) + amount
+        except Exception as e:
+            print('exception', e)
+            pass
     
     async def transfer_beans(self, users, sender, recipient, amount):
         try:

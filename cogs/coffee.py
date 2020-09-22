@@ -24,6 +24,7 @@ class CoffeeCog(commands.Cog):
             users[user.id]['last_daily'] = DATETIME_DEFAULT
             users[user.id]['last_rob'] = DATETIME_DEFAULT
             users[user.id]['inventory'] = {}
+            users[user.id]['net_gamble'] = 0
 
     async def migrate_user(self, users, user):
 
@@ -50,6 +51,15 @@ class CoffeeCog(commands.Cog):
                 lb.append((users[user]['name'], users[user]['beans']))
         leaderboard = sorted(lb, key=lambda v: v[1], reverse=True)
         return leaderboard
+
+    @staticmethod
+    def get_lossboard(users):
+        lb = []
+        for user in users:
+            if users[user]['net_gamble'] < 0:
+                lb.append((users[user]['name'], users[user]['net_gamble']))
+        lossboard = sorted(lb, key=lambda v: v[1], reverse=False)
+        return lossboard
 
 
     @staticmethod

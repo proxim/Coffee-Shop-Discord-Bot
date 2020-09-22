@@ -124,6 +124,31 @@ async def beans_error(ctx, error):
 
 
 
+@bot.command(name='net')
+async def net(ctx):
+    '''
+    Check how many beans you have.
+    '''
+    user = ctx.message.author
+    coffee_cog = bot.get_cog('CoffeeCog')
+    users = get_users(user_data)
+
+    net_gamble = coffee_cog.get_net_gamble(users, user)
+    await ctx.message.delete()
+
+    color = discord.Color.green() if net_gamble > 0 else discord.Color.red()
+
+    embed = discord.Embed(color=color)
+    embed.description = f'{user.mention}, you have gained {net_gamble} coffee beans through gambling.'
+
+    await ctx.send(embed=embed)
+    logger.info(f'{user} requested to see their net_gamble in {ctx.channel.name}')
+@net.error
+async def net_error(ctx, error):
+    logger.warning(f'AUTHOR: {ctx.message.author} | METHOD: net | ERROR: {error}')
+
+
+
 @bot.command(name='giftbeans', aliases=['gb'])
 async def giftbeans(ctx, amount: int, target):
     '''
@@ -174,6 +199,7 @@ async def gamble(ctx, amount: int, color):
         if color in colors:
             await coffee_cog.update_data(users, user)
             await coffee_cog.add_beans(users, user, -1*amount)
+            await coffee_cog.update_net_gamble(users, user, -1*amount)
 
             roll = random.randint(1, 101)
             if roll < 46:
@@ -185,9 +211,11 @@ async def gamble(ctx, amount: int, color):
 
             if color == result and result == 'green':
                 await coffee_cog.add_beans(users, user, 8*amount)
+                await coffee_cog.update_net_gamble(users, user, 8*amount)
                 msg = 'You won the jackpot!'
             elif color == result:
                 await coffee_cog.add_beans(users, user, 2*amount)
+                await coffee_cog.update_net_gamble(users, user, 2*amount)
                 msg = 'You won!'
             else:
                 msg = f'It landed on {result}. You lost...'
@@ -330,7 +358,7 @@ async def changenick(ctx, nickname):
     if str(user.id) not in users:
         logger.warning(f'{user} is NOT in JSON file but is trying to change nickname.')
     
-    if users[str(user.id)]['beans'] >= cost:
+    if coffee_cog.get_beans(users, user) >= cost:
         await user.edit(nick=nickname)
         await coffee_cog.add_beans(users, user, -1*cost)
         await ctx.send(f'Success {user.mention}!')
@@ -355,7 +383,7 @@ async def buy_role(ctx, cost, rolename):
     if str(user.id) not in users:
         logger.warning(f'{user} is NOT in JSON file but is trying to buy the Regular role.')
 
-    if users[str(user.id)]['beans'] >= cost:
+    if coffee_cog.get_beans(users, user) >= cost:
         if not rolename in [roles.name for roles in user.roles]:
             role = get(user.guild.roles, name=rolename)
             await user.add_roles(role)
@@ -410,8 +438,54 @@ async def pumpkinspice(ctx):
 async def pumpkinspice_error(ctx, error):
     logger.warning(f'AUTHOR: {ctx.message.author} | METHOD: pumpkinspice | ERROR: {error}')
 
+@bot.command(name='order')
+async def order(ctx, drink_name: str, color:str):
+    '''
+    Buy a drink of your choice (obtain the role) for 25,000 beans.
+    --order "drink name" <color e.g. f1f2f3>
+    '''
+    guild = ctx.guild
+    user = ctx.message.author
+    coffee_cog = bot.get_cog('CoffeeCog')
+    users = get_users(user_data)
+    cost = 25000
+    position = 11
+    beans = coffee_cog.get_beans(users, user)
 
+    if '#' in color:
+        color = color.replace('#', '')
+    col = discord.Color(value=int(color, 16))
 
+    if str(user.id) not in users:
+        logger.warning(f'{user} is NOT in JSON file but is trying to buy a role.')
+    
+    if drink_name in [roles.name for roles in user.roles]:
+        await ctx.send(f'You are already a {drink_name}.')
+        return
+
+    if beans >= cost:
+        await coffee_cog.add_beans(users, user, -1*cost)
+        # check if role already exists, if not then create it
+        if get(user.guild.roles, name=drink_name) is None:
+            try:
+                await guild.create_role(name=drink_name, hoist=True, color=col)
+            except Exception as e:
+                print(e)
+
+        role = get(user.guild.roles, name=drink_name)
+        await role.edit(position=position)
+        await user.add_roles(role)
+        await ctx.send(f'Congrats! You are now a {drink_name}.')
+        logger.info(f'{user} bought the {drink_name} role.')
+
+    else:
+        await ctx.send(f'You do not have enough beans; you need {cost}.')
+
+    save_users(user_data, users)
+@order.error
+async def order_error(ctx, error):
+    logger.warning(f'AUTHOR: {ctx.message.author} | METHOD: order | ERROR: {error}')
+    
 
 
 @bot.command(name='migrate')
@@ -426,8 +500,10 @@ async def migrate(ctx):
     for member in ctx.guild.members:
         if not member == bot.user:
             await coffee_cog.update_data(users, member)
+            await coffee_cog.migrate_user(users, member)
     
     save_users(user_data, users)
+    await ctx.send('Done!')
 
 
 
@@ -517,7 +593,14 @@ async def nuke_error(ctx, error):
 #=======================NON COFFEE STUFF HERE=======================
 ####################################################################
 
-
+@bot.command(name='8ball')
+async def eball(ctx):
+    responses = ['Most certainly.', 'Most definitely not.']
+    await ctx.message.delete()
+    await ctx.send(random.choice(responses))
+@eball.error
+async def eball_error(ctx, error):
+    logger.warning(f'AUTHOR: {ctx.message.author} | METHOD: rng | ERROR: {error}')
 
 @bot.command(name='rng')
 async def rng(ctx, start: int, end: int):

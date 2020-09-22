@@ -14,7 +14,7 @@ class CoffeeCog(commands.Cog):
 
     async def update_data(self, users, user):
         DATETIME_DEFAULT = datetime(2000, 1, 1, 0, 0).strftime(DATETIME_FORMAT)
-
+        
         # initialize user if not in json file yet
         if not str(user.id) in users:
             users[user.id] = {}
@@ -25,11 +25,22 @@ class CoffeeCog(commands.Cog):
             users[user.id]['last_rob'] = DATETIME_DEFAULT
             users[user.id]['inventory'] = {}
 
-        
+    async def migrate_user(self, users, user):
+
+        #users[str(user.id)['nickname'] = str(user.nick)
+        try:
+            users[str(user.id)]['net_gamble'] = 0
+        except KeyError as e:
+            pass
     
     @staticmethod
     def get_beans(users, user):
         return users[str(user.id)]['beans']
+    
+    @staticmethod
+    def get_net_gamble(users, user):
+        return users[str(user.id)]['net_gamble']
+
 
     @staticmethod
     def get_lb(users):
@@ -51,6 +62,12 @@ class CoffeeCog(commands.Cog):
     async def add_beans(self, users, user, amount):
         try:
             users[str(user.id)]['beans'] = int(CoffeeCog.get_beans(users, user)) + amount
+        except Exception as e:
+            print('exception', e)
+            pass
+    async def update_net_gamble(self, users, user, amount):
+        try:
+            users[str(user.id)]['net_gamble'] = int(CoffeeCog.get_net_gamble(users, user)) + amount
         except Exception as e:
             print('exception', e)
             pass

@@ -317,7 +317,7 @@ async def leaderboard(ctx):
 @bot.command(name='lossboard', aliases=['Lb'])
 async def lossboard(ctx):
     '''
-    See the coffee bean top leaderboard.
+    See who has lost the most gambling.
     '''
     coffee_cog = bot.get_cog('CoffeeCog')
     users = get_users(user_data)
@@ -330,7 +330,7 @@ async def lossboard(ctx):
     desc = ''
     for i, (name, net_loss) in enumerate(lb):
         if i < 10:
-            desc += f'{i+1}.   **{name}** - *{net_loss} beans*\n'
+            desc += f'{i+1}.   **{name}**: *{net_loss} beans*\n'
             #embed.add_field(name=f'{i+1}. {name} - {beans} beans', value=f' ', inline=False)
     embed.description = desc
     await ctx.send(embed=embed)

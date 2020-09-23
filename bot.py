@@ -355,7 +355,7 @@ async def shop(ctx):
         ('Nuke someone', '--nuke |\n 300 coffee beans'),
         ('Become a regular!', '--regular |\n 1000 coffee beans'),
         ('Become a caffeine addict!', '--caffeineaddict |\n 7500 coffee beans'),
-        ('Order your own drink!', '--order |\n 25,000 coffee beans')
+        ('Order your own drink!', '--order |\n 25,000 coffee beans'),
         ('Become a pumpkin spice latte!', '--pumpkinspice |\n 40,000 coffee beans')
     ]
 
@@ -620,6 +620,15 @@ async def nuke_error(ctx, error):
 ####################################################################
 #=======================NON COFFEE STUFF HERE=======================
 ####################################################################
+
+@bot.command(name='dopamine')
+async def dopamine(ctx):
+    '''
+    Get a hit of dopamine, with help from Robo.
+    '''
+    await asyncio.sleep(random.randint(5, 10))
+    await ctx.send(f'{ctx.message.author.mention} <3')
+
 
 @bot.command(name='8ball')
 async def eball(ctx):

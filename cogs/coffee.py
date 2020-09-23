@@ -47,7 +47,7 @@ class CoffeeCog(commands.Cog):
     def get_lb(users):
         lb = []
         for user in users:
-            if users[user]['beans'] > 0:
+            if CoffeeCog.get_net_gamble(users, user) > 0:
                 lb.append((users[user]['name'], users[user]['beans']))
         leaderboard = sorted(lb, key=lambda v: v[1], reverse=True)
         return leaderboard

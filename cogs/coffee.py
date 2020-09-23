@@ -56,8 +56,11 @@ class CoffeeCog(commands.Cog):
     def get_lossboard(users):
         lb = []
         for user in users:
-            if users[user]['net_gamble'] < 0:
-                lb.append((users[user]['name'], users[user]['net_gamble']))
+            try:
+                if users[user]['net_gamble'] < 0:
+                    lb.append((users[user]['name'], users[user]['net_gamble']))
+            except Exception as e:
+                pass
         lossboard = sorted(lb, key=lambda v: v[1], reverse=False)
         return lossboard
 

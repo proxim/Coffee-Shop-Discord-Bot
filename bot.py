@@ -552,12 +552,18 @@ async def loop_beans():
         if member.voice and member != bot.user:
             await coffee_cog.update_data(users, member)
             await coffee_cog.add_beans(users, member, 1)
+
+            roll = random.randint(1, 10001)
+            if roll == 69:
+                await member.send('You found a golden coffee bean!')
+                await coffee_cog.add_beans(users, member, 10000)
+
     save_users(user_data, users)
 
 
 
 @bot.command(name='clear')
-@commands.has_any_role('Brewmaster', 'Caffeine Addict', 'Pumpkin Spice Latte')
+@commands.has_any_role('Brewmaster', 'Pumpkin Spice Latte')
 async def clear(ctx, amount=10):
     await ctx.channel.purge(limit=amount)
     logger.info(f'{ctx.message.author} cleared {ctx.channel.name}.')

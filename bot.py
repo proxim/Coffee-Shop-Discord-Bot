@@ -475,6 +475,7 @@ async def order(ctx, drink_name: str, color:str):
     cost = 25000
     position = 11
     beans = coffee_cog.get_beans(users, user)
+    unorderable = ['Pumpkin Spice Latte', 'Brewmaster']
 
     if '#' in color:
         color = color.replace('#', '')
@@ -483,11 +484,11 @@ async def order(ctx, drink_name: str, color:str):
     if str(user.id) not in users:
         logger.warning(f'{user} is NOT in JSON file but is trying to buy a role.')
 
-    if drink_name == 'Pumpkin Spice Latte':
+    if drink_name in unorderable:
         await ctx.send('You cannot order this drink.')
         return
     
-    if drink_name in [roles.name for roles in user.roles]:
+    if drink_name.lower() in [roles.name.lower() for roles in user.roles]:
         await ctx.send(f'You are already a {drink_name}.')
         return
 
@@ -619,6 +620,60 @@ async def nuke_error(ctx, error):
     if isinstance(error, commands.MissingAnyRole):
         await ctx.send('I\'m afraid you do not have access to nukes. Sincere apologies.')
     logger.warning(f'AUTHOR: {ctx.message.author} | METHOD: nuke | ERROR: {error}')
+
+
+"""
+@bot.command(name='hbd')
+async def hbd(ctx, nuke_count: int, *targets):
+    '''
+    Sends specified number of nuke dms to target(s) for 300 credits.
+    Must be 'Brewmaster' or 'Regular' to use this command.
+    '''
+    user = ctx.message.author
+    coffee_cog = bot.get_cog('CoffeeCog')
+    users = get_users(user_data)
+
+    cost = 0
+    NUKE_LIMIT = 100
+    allowed_channels = ['robo-waiter', 'the-room-where-it-happens']
+
+    if nuke_count < 0:
+        return
+
+    if coffee_cog.get_beans(users, user) < cost:
+        await ctx.send('You are too poor to nuke.')
+        return
+    
+    await coffee_cog.update_data(users, user)
+    await coffee_cog.add_beans(users, user, -1*cost)
+
+    if ctx.channel.name in allowed_channels:
+        nuke_amount = NUKE_LIMIT if nuke_count > NUKE_LIMIT else nuke_count
+        if ctx.message.mentions:
+            await ctx.send(':rotating_light: BIRTHDAY NUKE INITIATED :rotating_light:')
+            for target_member in ctx.message.mentions:
+                for i in range(nuke_amount):
+                    await target_member.send(f':birthday: YOU HAVE :candle: BEEN :stars: WISHED :sparkles: A VERY HAPPY BIRTHDAY :sparkler: BY :sparkling_heart: {user} :birthday:')
+                    await target_member.send(f':birthday: AGAIN, YOU :stars: HAVE :candle: BEEN :sparkles: WISHED A VERY :sparkler: HAPPY :sparkling_heart: BIRTHDAY BY {user} :birthday:')
+                logger.info(f'{user} nuked {target_member} {nuke_amount} times from channel: {ctx.channel.name}.')
+        else:
+            await ctx.send('No targets specified.')
+            logger.info(f'{user} tried to nuke with no targets in: {ctx.channel.name} and failed.')
+    else:
+        await ctx.send('You do not have access to the launch system.')
+        logger.info(f'{user} tried to nuke in an invalid channel: {ctx.channel.name} and failed.')
+    save_users(user_data, users)
+@hbd.error
+async def hbd_error(ctx, error):
+    if isinstance(error, commands.BadArgument):
+        await ctx.send('Invalid launch code.')
+    if isinstance(error, commands.CommandInvokeError):
+        await ctx.send('ERROR: Sorry, your nukes do not reach that far.')
+    logger.warning(f'AUTHOR: {ctx.message.author} | METHOD: hbd | ERROR: {error}')
+"""
+
+
+
 
 
 

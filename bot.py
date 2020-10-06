@@ -556,8 +556,12 @@ async def loop_beans():
 
             roll = random.randint(1, 10001)
             if roll == 69:
-                await member.send('You found a golden coffee bean!')
                 await coffee_cog.add_beans(users, member, 10000)
+                print(f'{member} found a golden coffee bean.')
+                try:
+                    await member.send('You found a golden coffee bean!')
+                except Exception as e:
+                    logger.info(f'Error in loop_beans: f{member} | {e}')
 
     save_users(user_data, users)
 

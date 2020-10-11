@@ -14,6 +14,7 @@ load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 GUILD = os.getenv('DISCORD_GUILD')
 user_data = 'users.json'
+
 # LOGGING
 LOG_FORMAT = '%(levelname)s %(asctime)s - %(message)s'
 log_path = os.path.join(os.getcwd(), 'bot.log')
@@ -23,7 +24,7 @@ logger = logging.getLogger()
 print('starting up bot...')
 bot = commands.Bot(command_prefix='--')
 
-cogs = ['music', 'coffee']
+cogs = ['music', 'coffee', 'misc']
 
 def get_users(file):
     with open(file, 'r', encoding='utf8') as f:
@@ -55,18 +56,7 @@ async def on_member_join(member):
     logger.info(f'{member} joined the server.')
     role = get(member.guild.roles, name='Customer')
     await member.add_roles(role)
-'''
-async def secret_message(message):
-    name = message.author
-    if name == 'adri' and '' in message:
-        resp = ''
-    if name == 'maqic' and '' in message:
-        resp = ''
-    if name == 'Beianp' and '' in message:
-        resp = ''
-    if name == 'ctrl_alt_del' and '' in message:
-        resp = ''
-'''
+
 @bot.event
 async def on_message(message):
     if message.author == bot.user:
@@ -336,6 +326,52 @@ async def lossboard(ctx):
     await ctx.send(embed=embed)
     logger.info(f'{ctx.message.author} requested to see the lossboard in {ctx.channel.name}')
 
+@bot.command(name='winboard', aliases=['wb'])
+async def winboard(ctx):
+    '''
+    See who has won the most beans gambling.
+    '''
+    coffee_cog = bot.get_cog('CoffeeCog')
+    users = get_users(user_data)
+    await ctx.message.delete()
+
+    lb = coffee_cog.get_lossboard(users)
+    wb = sorted(lb, key=lambda v: v[1], reverse=True)
+    
+    embed = discord.Embed(color=discord.Color.green())
+    embed.title = ':coffee: *Coffee Bean Winboards* :coffee:'
+    desc = ''
+    for i, (name, net_gain) in enumerate(wb):
+        if i < 10:
+            desc += f'{i+1}.   **{name}**: *{net_gain} beans*\n'
+            #embed.add_field(name=f'{i+1}. {name} - {beans} beans', value=f' ', inline=False)
+    embed.description = desc
+    await ctx.send(embed=embed)
+    logger.info(f'{ctx.message.author} requested to see the winboard in {ctx.channel.name}')
+
+
+@bot.command(name='grossdomesticbeans', aliases=['gdb'])
+async def gdb(ctx):
+    '''
+    See how many beans the entire server has.
+    '''
+    coffee_cog = bot.get_cog('CoffeeCog')
+    users = get_users(user_data)
+    await ctx.message.delete()
+
+    lb = coffee_cog.get_lb(users)
+    
+    bean_count = 0
+    for i, (name, beans) in enumerate(lb):
+        if i is not 0:
+            bean_count += beans
+
+    embed = discord.Embed(color=discord.Color.green())
+    embed.title = ':coffee: Coffee Shop Gross Domestic Beans :coffee:'
+    embed.description = f'{bean_count} coffee beans.'
+    await ctx.send(embed=embed)
+    logger.info(f'{ctx.message.author} requested to see the gdb in {ctx.channel.name}')
+
 
 
 
@@ -356,7 +392,8 @@ async def shop(ctx):
         ('Become a regular!', '--regular |\n 1000 coffee beans'),
         ('Become a caffeine addict!', '--caffeineaddict |\n 7500 coffee beans'),
         ('Order your own drink!', '--order |\n 25,000 coffee beans'),
-        ('Become a pumpkin spice latte!', '--pumpkinspice |\n 40,000 coffee beans')
+        ('Become a pumpkin spice latte!', '--pumpkinspice |\n 40,000 coffee beans'),
+        ('Become an apprentice!', '--apprentice |\n 696,969 coffee beans')
     ]
 
     for name, value in items:
@@ -462,6 +499,19 @@ async def pumpkinspice(ctx):
 async def pumpkinspice_error(ctx, error):
     logger.warning(f'AUTHOR: {ctx.message.author} | METHOD: pumpkinspice | ERROR: {error}')
 
+@bot.command(name='apprentice')
+async def apprentice(ctx):
+    '''
+    Obtain the 'Apprentice' role in exchange for 696,969 beans.
+    '''
+    cost = 696969
+    rolename = 'Apprentice'
+
+    await buy_role(ctx, cost, rolename)
+@apprentice.error
+async def apprentice(ctx, error):
+    logger.warning(f'AUTHOR: {ctx.message.author} | METHOD: apprentice | ERROR: {error}')
+
 @bot.command(name='order')
 async def order(ctx, drink_name: str, color:str):
     '''
@@ -475,7 +525,7 @@ async def order(ctx, drink_name: str, color:str):
     cost = 25000
     position = 11
     beans = coffee_cog.get_beans(users, user)
-    unorderable = ['Pumpkin Spice Latte', 'Brewmaster']
+    unorderable = ['Pumpkin Spice Latte', 'Brewmaster', 'Staff', 'Apprentice']
 
     if '#' in color:
         color = color.replace('#', '')
@@ -686,39 +736,6 @@ async def hbd_error(ctx, error):
 #=======================NON COFFEE STUFF HERE=======================
 ####################################################################
 
-@bot.command(name='dopamine')
-async def dopamine(ctx):
-    '''
-    Get a hit of dopamine, with help from Robo.
-    '''
-    await asyncio.sleep(random.randint(5, 10))
-    await ctx.send(f'{ctx.message.author.mention} <3')
-
-
-@bot.command(name='8ball')
-async def eball(ctx):
-    '''
-    Get a yes or no from Robo Waiter.
-    '''
-    responses = ['Most certainly.', 'Most definitely not.']
-    await ctx.message.delete()
-    await ctx.send(random.choice(responses))
-@eball.error
-async def eball_error(ctx, error):
-    logger.warning(f'AUTHOR: {ctx.message.author} | METHOD: rng | ERROR: {error}')
-
-@bot.command(name='rng')
-async def rng(ctx, start: int, end: int):
-    '''
-    Generates a random integer in interval [start, end].
-    '''
-    embed = discord.Embed()
-    embed.title = 'Your Random Number'
-    embed.description = random.randint(start, end)
-    await ctx.send(embed=embed)
-@rng.error
-async def rng_error(ctx, error):
-    logger.warning(f'AUTHOR: {ctx.message.author} | METHOD: rng | ERROR: {error}')
 
 @bot.command(name='bday')
 @commands.has_any_role('Brewmaster')
@@ -732,36 +749,6 @@ async def bday(ctx):
     await music_cog.play(ctx, query=video)
 
 
-@bot.command(name='quote')
-async def quote(ctx, quote_type):
-    '''
-    Outputs a random quote of specified type.
-    Great for when you're bored or feeling experimental.
-    Options include: 'funny', 'motivational'
-    '''
-    quote_types = ['funny', 'motivational']
-    if quote_type in quote_types:
-        with open(f'quotes/{quote_type}_quotes.txt', 'r', encoding='utf8') as f:
-            quotes = f.readlines()
-        random_int = random.randint(0,len(quotes)-1)
-
-        if quote_type == 'funny':
-            if random_int % 2 == 1:
-                random_int -= 1
-            q = f'{quotes[random_int]}{quotes[random_int+1]}'
-        elif quote_type == 'motivational':
-            q = f'{quotes[random_int]}'
-
-        await ctx.send(q)
-        logger.info(f'{ctx.message.author} requested a {quote_type} quote in {ctx.channel.name}.')
-    else:
-        await ctx.send(f'My apologies. I couldn\'t find a "{quote_type}" quote.')
-@quote.error
-async def quote_error(ctx, error):
-    logger.warning(f'AUTHOR: {ctx.message.author} | METHOD: quote | ERROR: {error}')
-
-
-
 @bot.command(name='setmood', aliases=['mood'])
 async def setmood(ctx, mood):
     '''
@@ -770,7 +757,7 @@ async def setmood(ctx, mood):
     Join a voice channel for the full effect.
     Options include: 'fall', 'nature', 'rain', 'summer', 'jazz', 'synthwave'
     '''
-    moods = ['fall', 'nature', 'rain', 'summer', 'jazz', 'synthwave']
+    moods = ['fall', 'nature', 'rain', 'summer', 'jazz', 'synthwave', 'lofi', 'city']
     member = ctx.message.author
     
     if mood in moods:
@@ -802,38 +789,6 @@ async def setmood_error(ctx, error):
     if isinstance(error, commands.BadArgument):
         await ctx.send('I could not find that mood.')
     logger.warning(f'AUTHOR: {ctx.message.author} | METHOD: setmood | ERROR: {error}')
-
-
-
-@bot.command(name='ustoopid')
-async def ustoopid(ctx):
-    '''
-    A cleaner way to point out another's intelligence or lack thereof.
-    '''
-    await ctx.message.delete()
-    await ctx.send('Not quite the sharpest tool in the shed I see.')
-
-@bot.command(name='yep')
-async def yep(ctx):
-    '''
-    When you need Robo Waiter to confirm.
-    '''
-    choices = ['Indubitably.', 'Certainly.', 'Indeed.', 'Undoubtedly.', 'Assuredly.']
-    await ctx.message.delete()
-    await ctx.send(random.choice(choices))
-
-@bot.command(name='helpme')
-async def helpme(ctx):
-    '''
-    Sends a helpful link when someone calls for help.
-    '''
-    embed = discord.Embed(color=discord.Color.green())
-    embed.title = 'Somebody call for help?'
-    embed.description = '[Try this helpful link.](https://www.youtube.com/watch?v=dQw4w9WgXcQ)'
-    await ctx.send(embed=embed)
-@helpme.error
-async def helpme_error(ctx, error):
-    logger.warning(f'AUTHOR: {ctx.message.author} | METHOD: helpme | ERROR: {error}')
 
 
 

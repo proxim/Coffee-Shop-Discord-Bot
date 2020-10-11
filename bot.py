@@ -335,8 +335,7 @@ async def winboard(ctx):
     users = get_users(user_data)
     await ctx.message.delete()
 
-    lb = coffee_cog.get_lossboard(users)
-    wb = sorted(lb, key=lambda v: v[1], reverse=True)
+    wb = coffee_cog.get_winboard(users)
     
     embed = discord.Embed(color=discord.Color.green())
     embed.title = ':coffee: *Coffee Bean Winboards* :coffee:'

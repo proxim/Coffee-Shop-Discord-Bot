@@ -25,15 +25,25 @@ class CoffeeCog(commands.Cog):
             users[user.id]['last_rob'] = DATETIME_DEFAULT
             users[user.id]['inventory'] = {}
             users[user.id]['net_gamble'] = 0
+            users[user.id]['duel'] = 0
 
     async def migrate_user(self, users, user):
 
         #users[str(user.id)['nickname'] = str(user.nick)
-        try:
-            users[str(user.id)]['net_gamble'] = 0
-        except KeyError as e:
-            pass
+        if not users[str(user.id)]['duel']:
+            try:
+                users[str(user.id)]['duel'] = 0
+            except KeyError as e:
+                pass
+        if not users[str(user.id)]['net_gamble']:
+            try:
+                users[str(user.id)]['net_gamble'] = 0
+            except KeyError as e:
+                pass
     
+
+    
+
     @staticmethod
     def get_beans(users, user):
         return users[str(user.id)]['beans']
@@ -63,6 +73,18 @@ class CoffeeCog(commands.Cog):
                 pass
         lossboard = sorted(lb, key=lambda v: v[1], reverse=False)
         return lossboard
+    
+    @staticmethod
+    def get_winboard(users):
+        wb = []
+        for user in users:
+            try:
+                if users[user]['net_gamble'] > 0:
+                    wb.append((users[user]['name'], users[user]['net_gamble']))
+            except Exception as e:
+                pass
+        winboard = sorted(wb, key=lambda v: v[1], reverse=True)
+        return winboard
 
 
     @staticmethod

@@ -508,20 +508,21 @@ async def apprentice(ctx):
 async def order(ctx, drink_name: str, color:str):
     '''
     Buy a drink of your choice (obtain the role) for 25,000 beans.
-    --order "drink name" <color e.g. f1f2f3>
+    --order "your role name" <color hexcode>
+    --order "Green Tea" f1f2f3
     '''
     guild = ctx.guild
     user = ctx.message.author
     coffee_cog = bot.get_cog('CoffeeCog')
     users = get_users(user_data)
     cost = 25000
-    position = 11
+    position = 12
     beans = coffee_cog.get_beans(users, user)
 
     
     if '#' in color:
         color = color.replace('#', '')
-    col = discord.Color(value=int(color, 16))
+    col = discord.Color(value=int(color.lower(), 16))
 
     if str(user.id) not in users:
         logger.warning(f'{user} is NOT in JSON file but is trying to buy a role.')
@@ -537,16 +538,17 @@ async def order(ctx, drink_name: str, color:str):
     if beans >= cost:
         await coffee_cog.add_beans(users, user, -1*cost)
         # check if role already exists, if not then create it
-        if get(user.guild.roles, name=drink_name) is None:
+        role = find(lambda r: r.name.lower() == drink_name.lower(), user.guild.roles)
+        if not role:
             try:
                 await guild.create_role(name=drink_name, hoist=True, color=col)
+                role = get(user.guild.roles, name=drink_name)
+                await role.edit(position=position)
+                logger.info(f'{user} created the {drink_name} role.')
             except Exception as e:
                 print(e)
-
-        role = get(user.guild.roles, name=drink_name)
-        await role.edit(position=position)
         await user.add_roles(role)
-        await ctx.send(f'Congrats! You are now a {drink_name}.')
+        await ctx.send(f'Congrats! You are now a {drink_name}. You now have {beans} coffee beans.')
         logger.info(f'{user} bought the {drink_name} role.')
 
     else:
@@ -566,6 +568,11 @@ async def remove_role(ctx, rolename):
     
     await user.remove_roles(role)
     await ctx.send(f'You are no longer a {rolename}.')
+
+    # remove the role if there is no one in it
+    if len(role.members) == 0 and not role.name.lower() in [r.lower() for r in SHOP_ROLES]:
+        await role.delete()
+
 @bot.command(name='return', aliases=['r'])
 async def return_role(ctx, rolename):
     '''

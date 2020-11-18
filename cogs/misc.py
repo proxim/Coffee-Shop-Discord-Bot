@@ -114,5 +114,26 @@ class MiscCog(commands.Cog):
         logger.warning(f'AUTHOR: {ctx.message.author} | METHOD: helpme | ERROR: {error}')
 
 
+    @commands.command(name='cap')
+    async def cap(self, ctx):
+        '''
+        Stop the cap.
+        '''
+        await ctx.message.delete()
+        msg = await ctx.send('Halt thy headwear.')
+        emoji = '\N{billed cap}'
+        await msg.add_reaction(emoji)
+
+    @commands.command(name='doubt')
+    async def doubt(self, ctx):
+        '''
+        Press X to doubt.
+        '''
+        await ctx.message.delete()
+        msg = await ctx.send('Press X to doubt.')
+        emoji = '\N{cross mark}'
+        await msg.add_reaction(emoji)
+
+
 def setup(bot):
     bot.add_cog(MiscCog(bot))

@@ -8,12 +8,21 @@ import datetime
 import logging
 from dotenv import load_dotenv
 from discord.ext import commands, timers, tasks
-from discord.utils import get
+from discord.utils import get, find
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 GUILD = os.getenv('DISCORD_GUILD')
 user_data = 'users.json'
+
+SHOP_ROLES = ['Staff', 'Brewmaster', 'Apprentice', 'Pumpkin Spice Latte', 'Unlucky', 'Caffeine Addict', 'Regular', 
+    'Customer', 'Hobo', 'Boardgamer', 'Movie Goer', 'In Gambling Rehab', 'Assistant']
+
+UNORDERABLE = ['Staff', 'Groovy', 'PythonApp', 'Pancake', 'Brewmaster', 'Apprentice', 'Pumpkin Spice Latte', 
+    'Unlucky', 'Caffeine Addict', 'Regular', 'Customer', 'Hobo', 'Boardgamer', 'Movie Goer', 'Rythm', 
+    'In Gambling Rehab', 'Server Booster', 'Assistant']
+
+UNREMOVABLE = ['Customer', 'Hobo']
 
 # LOGGING
 LOG_FORMAT = '%(levelname)s %(asctime)s - %(message)s'
@@ -362,7 +371,7 @@ async def gdb(ctx):
     
     bean_count = 0
     for i, (name, beans) in enumerate(lb):
-        if i is not 0:
+        if i != 0:
             bean_count += beans
 
     embed = discord.Embed(color=discord.Color.green())
@@ -441,7 +450,7 @@ async def buy_role(ctx, cost, rolename):
     users = get_users(user_data)
     
     if str(user.id) not in users:
-        logger.warning(f'{user} is NOT in JSON file but is trying to buy the Regular role.')
+        logger.warning(f'{user} is NOT in JSON file but is trying to buy a role.')
 
     if coffee_cog.get_beans(users, user) >= cost:
         if not rolename in [roles.name for roles in user.roles]:
@@ -466,11 +475,7 @@ async def regular(ctx):
     '''
     cost = 1000
     rolename = 'Regular'
-
     await buy_role(ctx, cost, rolename)
-@regular.error
-async def regular_error(ctx, error):
-    logger.warning(f'AUTHOR: {ctx.message.author} | METHOD: regular | ERROR: {error}')
 
 @bot.command(name='caffeineaddict')
 async def caffeineaddict(ctx):
@@ -479,11 +484,7 @@ async def caffeineaddict(ctx):
     '''
     cost = 7500
     rolename = 'Caffeine Addict'
-
     await buy_role(ctx, cost, rolename)
-@caffeineaddict.error
-async def caffeineaddict_error(ctx, error):
-    logger.warning(f'AUTHOR: {ctx.message.author} | METHOD: caffeineaddict | ERROR: {error}')
 
 @bot.command(name='pumpkinspice')
 async def pumpkinspice(ctx):
@@ -492,11 +493,7 @@ async def pumpkinspice(ctx):
     '''
     cost = 40000
     rolename = 'Pumpkin Spice Latte'
-
     await buy_role(ctx, cost, rolename)
-@pumpkinspice.error
-async def pumpkinspice_error(ctx, error):
-    logger.warning(f'AUTHOR: {ctx.message.author} | METHOD: pumpkinspice | ERROR: {error}')
 
 @bot.command(name='apprentice')
 async def apprentice(ctx):
@@ -505,11 +502,7 @@ async def apprentice(ctx):
     '''
     cost = 696969
     rolename = 'Apprentice'
-
     await buy_role(ctx, cost, rolename)
-@apprentice.error
-async def apprentice(ctx, error):
-    logger.warning(f'AUTHOR: {ctx.message.author} | METHOD: apprentice | ERROR: {error}')
 
 @bot.command(name='order')
 async def order(ctx, drink_name: str, color:str):
@@ -524,8 +517,8 @@ async def order(ctx, drink_name: str, color:str):
     cost = 25000
     position = 11
     beans = coffee_cog.get_beans(users, user)
-    unorderable = ['Pumpkin Spice Latte', 'Brewmaster', 'Staff', 'Apprentice']
 
+    
     if '#' in color:
         color = color.replace('#', '')
     col = discord.Color(value=int(color, 16))
@@ -533,7 +526,7 @@ async def order(ctx, drink_name: str, color:str):
     if str(user.id) not in users:
         logger.warning(f'{user} is NOT in JSON file but is trying to buy a role.')
 
-    if drink_name in unorderable:
+    if drink_name.lower() in [role.lower() for role in UNORDERABLE]:
         await ctx.send('You cannot order this drink.')
         return
     
@@ -563,8 +556,51 @@ async def order(ctx, drink_name: str, color:str):
 @order.error
 async def order_error(ctx, error):
     logger.warning(f'AUTHOR: {ctx.message.author} | METHOD: order | ERROR: {error}')
-    
 
+async def remove_role(ctx, rolename):
+    user = ctx.message.author
+    role = find(lambda u: u.name.lower() == rolename.lower(), user.roles)
+    if not role:
+        await ctx.send('You do not have this role.')
+        return
+    
+    await user.remove_roles(role)
+    await ctx.send(f'You are no longer a {rolename}.')
+@bot.command(name='return', aliases=['r'])
+async def return_role(ctx, rolename):
+    '''
+    Remove an undesired role.
+    '''
+    if rolename.lower() in [r.lower() for r in UNREMOVABLE]:
+        await ctx.send('You cannot remove this role.')
+        return
+    
+    await remove_role(ctx, rolename)
+
+async def toggle_role(ctx, rolename):
+    user = ctx.message.author
+    role = find(lambda u: u.name.lower() == rolename.lower(), user.roles)
+    if role:
+        await user.remove_roles(role)
+        await ctx.send(f'You are no longer a {rolename}.')
+    else:
+        role = get(user.guild.roles, name=rolename)
+        await user.add_roles(role)
+        await ctx.send(f'You are now a {rolename}.')
+
+@bot.command(name='boardgamer', aliases=['bg'])
+async def boardgamer(ctx):
+    '''
+    Opt in/out of coffee shop game nights.
+    '''
+    await toggle_role(ctx, 'Boardgamer')
+
+@bot.command(name='moviegoer', aliases=['mg'])
+async def moviegoer(ctx):
+    '''
+    Opt in/out of coffee shop movie nights.
+    '''
+    await toggle_role(ctx, 'Movie Goer')
 
 @bot.command(name='migrate')
 @commands.has_any_role('Brewmaster')

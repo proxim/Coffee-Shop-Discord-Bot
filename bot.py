@@ -799,7 +799,7 @@ async def setmood(ctx, mood):
     Join a voice channel for the full effect.
     Options include: 'fall', 'nature', 'rain', 'summer', 'jazz', 'synthwave'
     '''
-    moods = ['fall', 'nature', 'rain', 'summer', 'jazz', 'synthwave', 'lofi', 'city']
+    moods = ['fall', 'nature', 'rain', 'summer', 'jazz', 'synthwave', 'lofi', 'city', 'minecraft']
     member = ctx.message.author
     
     if mood in moods:

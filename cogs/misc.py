@@ -141,5 +141,26 @@ class MiscCog(commands.Cog):
         '''
         await ctx.send('hey david, prom? ;)\n--adri')
         
+        
+    @commands.command(name='adri')
+    async def simp(self, ctx):
+        '''
+        adrienne is a dumbass and is abusing her write access privileges
+        '''
+        await ctx.send('david wanna go on a date... haha jk......... unless')
+        
+
+    @commands.command(name='prom')
+    async def prom(ctx, target):
+        '''
+        ask ur discord kitten/daddy to prom via discord bc ur a loser with no irl social skills, with help from Robo.
+        '''
+        user = ctx.message.author
+        users = get_users(user_data)
+        ''
+        recipient = ctx.message.mentions[0]
+        await ctx.send(f'hey {recipient.mention}, go to prom with {user.mention}?')     
+        
+        
 def setup(bot):
     bot.add_cog(MiscCog(bot))

@@ -134,6 +134,12 @@ class MiscCog(commands.Cog):
         emoji = '\N{cross mark}'
         await msg.add_reaction(emoji)
 
-
+    @commands.command(name='prom')
+    async def prom(self, ctx):
+        '''
+        be a fucking league gamer boy simp, with help from Robo.
+        '''
+        await ctx.send('hey david, prom? ;)\n--adri')
+        
 def setup(bot):
     bot.add_cog(MiscCog(bot))

@@ -139,7 +139,7 @@ class MiscCog(commands.Cog):
         '''
         be a fucking league gamer boy simp, with help from Robo.
         '''
-        msg = await ctx.send('hey david, prom? ;)')
+        await ctx.send('hey david, prom? ;)\n--adri')
         
 def setup(bot):
     bot.add_cog(MiscCog(bot))

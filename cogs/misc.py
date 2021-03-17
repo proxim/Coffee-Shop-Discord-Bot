@@ -141,7 +141,7 @@ class MiscCog(commands.Cog):
         be a fucking league gamer boy simp, with help from Robo.
         '''
         await ctx.send('hey david, prom? ;)\n--adri')
-        asyncio.sleep(1)
+        await asyncio.sleep(1)
         await ctx.send('yes, dingus')
 
 

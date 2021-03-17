@@ -3,6 +3,7 @@ import os
 import json
 import logging
 import random
+import asyncio
 from datetime import datetime, timedelta
 from discord.ext import commands
 import discord
@@ -140,6 +141,9 @@ class MiscCog(commands.Cog):
         be a fucking league gamer boy simp, with help from Robo.
         '''
         await ctx.send('hey david, prom? ;)\n--adri')
-        
+        asyncio.sleep(1)
+        await ctx.send('yes, dingus')
+
+
 def setup(bot):
     bot.add_cog(MiscCog(bot))

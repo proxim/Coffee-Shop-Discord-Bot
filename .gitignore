@@ -1,5 +1,6 @@
 logs/
 users.json
+msg.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

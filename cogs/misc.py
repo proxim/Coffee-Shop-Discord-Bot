@@ -143,7 +143,20 @@ class MiscCog(commands.Cog):
         await ctx.send('hey david, prom? ;)\n--adri')
         await asyncio.sleep(1)
         await ctx.send('yes, dingus')
+    '''
+    @commands.command(name='lol')
+    async def lol(self, ctx):
+        if ctx.message.author.id not in ("386637520248766475", 386637520248766475):
+            return
 
-
+        with open('msg.json', 'r', encoding='utf8') as f:
+            msgs = json.load(f)
+        
+        await ctx.send(f'{ctx.message.author.mention}, ')
+        
+        for msg in msgs[1]:
+            await ctx.send(msgs[i])
+            await asyncio.sleep(.5)
+    '''
 def setup(bot):
     bot.add_cog(MiscCog(bot))

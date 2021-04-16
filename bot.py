@@ -85,6 +85,13 @@ async def on_message(message):
 
     coffee_cog = bot.get_cog('CoffeeCog')
     users = get_users(user_data)
+
+    if message.channel.name == 'locked-door' and msg == os.getenv('SECRET'):
+        await message.delete()
+        channel = get(message.guild.channels, name='secret-room')
+        channel.set_permissions(message.author, view_channel=True)
+        await message.author.send('The locked door slowly creaks open, revealing a hidden room...')
+
     
     await coffee_cog.update_data(users, message.author)
     await coffee_cog.add_beans(users, message.author, 1)

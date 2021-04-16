@@ -19,7 +19,6 @@ class CoffeeCog(commands.Cog):
         if not str(user.id) in users:
             users[user.id] = {}
             users[user.id]['name'] = str(user)
-            users[user.id]['nickname'] = str(user.nick)
             users[user.id]['beans'] = 0
             users[user.id]['last_daily'] = DATETIME_DEFAULT
             users[user.id]['last_rob'] = DATETIME_DEFAULT

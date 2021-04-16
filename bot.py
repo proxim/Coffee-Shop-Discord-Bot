@@ -89,7 +89,7 @@ async def on_message(message):
     if message.channel.name == 'locked-door' and msg == os.getenv('SECRET'):
         await message.delete()
         channel = get(message.guild.channels, name='secret-room')
-        channel.set_permissions(message.author, view_channel=True)
+        await channel.set_permissions(message.author, view_channel=True)
         await message.author.send('The locked door slowly creaks open, revealing a hidden room...')
 
     

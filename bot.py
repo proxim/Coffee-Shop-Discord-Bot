@@ -70,6 +70,8 @@ async def on_member_join(member):
 async def on_message(message):
     if message.author == bot.user:
         return
+    if isinstance(message.channel, discord.channel.DMChannel):
+        return
     msg = message.content
     welcome_responses = ['You\'re very welcome.', 'My pleasure.', 'Of course.']
     if all(word in msg.lower() for word in ['thanks', 'robo', 'waiter']):
@@ -85,7 +87,7 @@ async def on_message(message):
 
     coffee_cog = bot.get_cog('CoffeeCog')
     users = get_users(user_data)
-
+    
     if message.channel.name == 'locked-door' and msg == os.getenv('SECRET'):
         await message.delete()
         channel = get(message.guild.channels, name='secret-room')

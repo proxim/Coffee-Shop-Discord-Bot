@@ -90,6 +90,7 @@ async def on_message(message):
         await message.delete()
         channel = get(message.guild.channels, name='secret-room')
         await channel.set_permissions(message.author, view_channel=True)
+        await channel.send(f'Hello there {message.author.mention}. :sunglasses:')
         await message.author.send('The locked door slowly creaks open, revealing a hidden room...')
 
     

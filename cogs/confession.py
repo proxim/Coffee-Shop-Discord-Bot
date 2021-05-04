@@ -24,7 +24,7 @@ class ConfessionCog(commands.Cog, name="Confessions"):
         embed.title = '*Confession*'
         embed.description = confession
         await self.channel.send(embed=embed)
-        await self.log_channel.send(f'from: message.author', embed=embed)
+        await self.log_channel.send(f'FROM: {message.author}', embed=embed)
 
     @commands.command(name='confess')
     async def confess(self, ctx):

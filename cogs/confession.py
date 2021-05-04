@@ -8,6 +8,7 @@ class ConfessionCog(commands.Cog, name="Confessions"):
         self.bot = bot
         self.guild = get(self.bot.guilds, name='Coffee Shop')
         self.channel = get(self.guild.channels, name='expresso-corner')
+        self.log_channel = get(self.guild.channels, name='logs')
     
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -23,6 +24,7 @@ class ConfessionCog(commands.Cog, name="Confessions"):
         embed.title = '*Confession*'
         embed.description = confession
         await self.channel.send(embed=embed)
+        await self.log_channel.send(f'from: message.author', embed=embed)
 
     @commands.command(name='confess')
     async def confess(self, ctx):

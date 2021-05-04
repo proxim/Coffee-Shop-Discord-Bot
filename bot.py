@@ -33,7 +33,7 @@ logger = logging.getLogger()
 print('starting up bot...')
 bot = commands.Bot(command_prefix='--')
 
-cogs = ['music', 'coffee', 'misc']
+cogs = ['music', 'coffee', 'misc', 'confession']
 
 def get_users(file):
     with open(file, 'r', encoding='utf8') as f:

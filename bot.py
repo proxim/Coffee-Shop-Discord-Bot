@@ -14,6 +14,7 @@ load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 GUILD = os.getenv('DISCORD_GUILD')
 user_data = 'users.json'
+group_data = 'groups.json'
 
 SHOP_ROLES = ['Staff', 'Brewmaster', 'Apprentice', 'Pumpkin Spice Latte', 'Unlucky', 'Caffeine Addict', 'Regular', 
     'Customer', 'Hobo', 'Boardgamer', 'Movie Goer', 'In Gambling Rehab', 'Assistant']
@@ -33,14 +34,19 @@ logger = logging.getLogger()
 print('starting up bot...')
 bot = commands.Bot(command_prefix='--')
 
-cogs = ['music', 'coffee', 'misc', 'confession']
+cogs = [
+    'coffee', 
+    'misc', 
+    'confession', 
+    'music'
+]
 
-def get_users(file):
+def get_json(file):
     with open(file, 'r', encoding='utf8') as f:
         users = json.load(f)
     return users
 
-def save_users(file, users):
+def save_json(file, users):
     with open(file, 'w', encoding='utf8') as f:
         users = json.dump(users, f, indent=4, ensure_ascii=False)
 
@@ -86,7 +92,7 @@ async def on_message(message):
         await message.channel.send(random.choice(resp))
 
     coffee_cog = bot.get_cog('CoffeeCog')
-    users = get_users(user_data)
+    users = get_json(user_data)
     
     if message.channel.name == 'locked-door' and msg == os.getenv('SECRET'):
         await message.delete()
@@ -99,7 +105,7 @@ async def on_message(message):
     await coffee_cog.update_data(users, message.author)
     await coffee_cog.add_beans(users, message.author, 1)
     
-    save_users(user_data, users)
+    save_json(user_data, users)
     await bot.process_commands(message)
 '''
 @bot.event
@@ -117,7 +123,7 @@ async def beans(ctx):
     '''
     user = ctx.message.author
     coffee_cog = bot.get_cog('CoffeeCog')
-    users = get_users(user_data)
+    users = get_json(user_data)
 
     beans = coffee_cog.get_beans(users, user)
     await ctx.message.delete()
@@ -140,7 +146,7 @@ async def net(ctx):
     '''
     user = ctx.message.author
     coffee_cog = bot.get_cog('CoffeeCog')
-    users = get_users(user_data)
+    users = get_json(user_data)
 
     net_gamble = coffee_cog.get_net_gamble(users, user)
     await ctx.message.delete()
@@ -165,7 +171,7 @@ async def giftbeans(ctx, amount: int, target):
     '''
     user = ctx.message.author
     coffee_cog = bot.get_cog('CoffeeCog')
-    users = get_users(user_data)
+    users = get_json(user_data)
 
     if coffee_cog.get_beans(users, user) >= amount > 0:
         recipient = ctx.message.mentions[0]
@@ -176,7 +182,7 @@ async def giftbeans(ctx, amount: int, target):
     else:
         await ctx.send('Unfortunately, you cannot gift that number of beans.')
 
-    save_users(user_data, users)
+    save_json(user_data, users)
 async def giftbeans_error(ctx, error):
     if isinstance(error, commands.BadArgument):
         await ctx.send('You did the command wrong.')
@@ -194,7 +200,7 @@ async def gamble(ctx, amount: int, color):
     '''
     user = ctx.message.author
     coffee_cog = bot.get_cog('CoffeeCog')
-    users = get_users(user_data)
+    users = get_json(user_data)
 
     allowed_channels = ['lotto', 'the-room-where-it-happens']
     if not ctx.channel.name in allowed_channels:
@@ -240,7 +246,7 @@ async def gamble(ctx, amount: int, color):
     else:
         await ctx.send('Unfortunately, you cannot gamble that number of beans.')
 
-    save_users(user_data, users)
+    save_json(user_data, users)
 @gamble.error
 async def gamble_error(ctx, error):
     logger.warning(f'AUTHOR: {ctx.message.author} | METHOD: gamble | ERROR: {error}')
@@ -257,7 +263,7 @@ async def dailybeans(ctx):
 
     user = ctx.message.author
     coffee_cog = bot.get_cog('CoffeeCog')
-    users = get_users(user_data)
+    users = get_json(user_data)
     
     next_avail = coffee_cog.next_daily_available_in(users, user) 
     if next_avail <= 0:
@@ -270,7 +276,7 @@ async def dailybeans(ctx):
     else:
         await ctx.send(f'You can get your daily beans in {round(next_avail, 1)} hours.')
 
-    save_users(user_data, users)
+    save_json(user_data, users)
 
 
 
@@ -281,7 +287,7 @@ async def tip(ctx, amount: int):
     '''
     user = ctx.message.author
     coffee_cog = bot.get_cog('CoffeeCog')
-    users = get_users(user_data)
+    users = get_json(user_data)
 
     if coffee_cog.get_beans(users, user) >= amount > 0:
         await coffee_cog.add_beans(users, user, -1*amount)
@@ -292,7 +298,7 @@ async def tip(ctx, amount: int):
     else:
         await ctx.send('Unfortunately, you cannot tip that number of beans.')
 
-    save_users(user_data, users)
+    save_json(user_data, users)
 async def giftbeans_error(ctx, error):
     if isinstance(error, commands.BadArgument):
         await ctx.send('You did the command wrong.')
@@ -307,7 +313,7 @@ async def leaderboard(ctx):
     See the coffee bean top leaderboard.
     '''
     coffee_cog = bot.get_cog('CoffeeCog')
-    users = get_users(user_data)
+    users = get_json(user_data)
     await ctx.message.delete()
     
     lb = coffee_cog.get_lb(users)
@@ -329,7 +335,7 @@ async def lossboard(ctx):
     See who has lost the most gambling.
     '''
     coffee_cog = bot.get_cog('CoffeeCog')
-    users = get_users(user_data)
+    users = get_json(user_data)
     await ctx.message.delete()
     
     lb = coffee_cog.get_lossboard(users)
@@ -351,7 +357,7 @@ async def winboard(ctx):
     See who has won the most beans gambling.
     '''
     coffee_cog = bot.get_cog('CoffeeCog')
-    users = get_users(user_data)
+    users = get_json(user_data)
     await ctx.message.delete()
 
     wb = coffee_cog.get_winboard(users)
@@ -374,7 +380,7 @@ async def gdb(ctx):
     See how many beans the entire server has.
     '''
     coffee_cog = bot.get_cog('CoffeeCog')
-    users = get_users(user_data)
+    users = get_json(user_data)
     await ctx.message.delete()
 
     lb = coffee_cog.get_lb(users)
@@ -432,7 +438,7 @@ async def changenick(ctx, nickname):
     user = ctx.message.author
 
     coffee_cog = bot.get_cog('CoffeeCog')
-    users = get_users(user_data)
+    users = get_json(user_data)
     
     if str(user.id) not in users:
         logger.warning(f'{user} is NOT in JSON file but is trying to change nickname.')
@@ -444,7 +450,7 @@ async def changenick(ctx, nickname):
     else:
         ctx.send(f'You do not have enough beans; you need {count}.')
 
-    save_users(user_data, users)
+    save_json(user_data, users)
 @changenick.error
 async def changenick_error(ctx, error):
     logger.warning(f'AUTHOR: {ctx.message.author} | METHOD: changenick | ERROR: {error}')
@@ -457,7 +463,7 @@ async def buy_role(ctx, cost, rolename):
     '''
     user = ctx.message.author
     coffee_cog = bot.get_cog('CoffeeCog')
-    users = get_users(user_data)
+    users = get_json(user_data)
     
     if str(user.id) not in users:
         logger.warning(f'{user} is NOT in JSON file but is trying to buy a role.')
@@ -476,7 +482,7 @@ async def buy_role(ctx, cost, rolename):
     else:
         await ctx.send(f'You do not have enough beans; you need {cost}.')
 
-    save_users(user_data, users)
+    save_json(user_data, users)
 
 @bot.command(name='regular')
 async def regular(ctx):
@@ -524,7 +530,7 @@ async def order(ctx, drink_name: str, color:str):
     guild = ctx.guild
     user = ctx.message.author
     coffee_cog = bot.get_cog('CoffeeCog')
-    users = get_users(user_data)
+    users = get_json(user_data)
     cost = 25000
     position = 12
     beans = coffee_cog.get_beans(users, user)
@@ -564,7 +570,7 @@ async def order(ctx, drink_name: str, color:str):
     else:
         await ctx.send(f'You do not have enough beans; you need {cost}.')
 
-    save_users(user_data, users)
+    save_json(user_data, users)
 @order.error
 async def order_error(ctx, error):
     logger.warning(f'AUTHOR: {ctx.message.author} | METHOD: order | ERROR: {error}')
@@ -623,7 +629,7 @@ async def moviegoer(ctx):
 @commands.has_any_role('Brewmaster')
 async def migrate(ctx):
     coffee_cog = bot.get_cog('CoffeeCog')
-    users = get_users(user_data)
+    users = get_json(user_data)
 
     logger.info(f'{ctx.message.author} MIGRATED.')
     await ctx.send('Migrating...')
@@ -633,7 +639,7 @@ async def migrate(ctx):
             await coffee_cog.update_data(users, member)
             await coffee_cog.migrate_user(users, member)
     
-    save_users(user_data, users)
+    save_json(user_data, users)
     await ctx.send('Done!')
 
 
@@ -644,7 +650,7 @@ async def loop_beans():
     Every 30 seconds gives everyone in vc 1 bean.
     '''
     coffee_cog = bot.get_cog('CoffeeCog')
-    users = get_users(user_data)
+    users = get_json(user_data)
 
     for guild in bot.guilds:
         if guild.name == GUILD:
@@ -665,7 +671,7 @@ async def loop_beans():
                 except Exception as e:
                     logger.info(f'Error in loop_beans: f{member} | {e}')
 
-    save_users(user_data, users)
+    save_json(user_data, users)
 
 
 
@@ -686,7 +692,7 @@ async def nuke(ctx, nuke_count: int, *targets):
     '''
     user = ctx.message.author
     coffee_cog = bot.get_cog('CoffeeCog')
-    users = get_users(user_data)
+    users = get_json(user_data)
 
     cost = 300
     NUKE_LIMIT = 30
@@ -716,7 +722,7 @@ async def nuke(ctx, nuke_count: int, *targets):
     else:
         await ctx.send('You do not have access to the launch system.')
         logger.info(f'{user} tried to nuke in an invalid channel: {ctx.channel.name} and failed.')
-    save_users(user_data, users)
+    save_json(user_data, users)
 @nuke.error
 async def nuke_error(ctx, error):
     if isinstance(error, commands.BadArgument):
@@ -737,7 +743,7 @@ async def hbd(ctx, nuke_count: int, *targets):
     '''
     user = ctx.message.author
     coffee_cog = bot.get_cog('CoffeeCog')
-    users = get_users(user_data)
+    users = get_json(user_data)
 
     cost = 0
     NUKE_LIMIT = 100
@@ -768,7 +774,7 @@ async def hbd(ctx, nuke_count: int, *targets):
     else:
         await ctx.send('You do not have access to the launch system.')
         logger.info(f'{user} tried to nuke in an invalid channel: {ctx.channel.name} and failed.')
-    save_users(user_data, users)
+    save_json(user_data, users)
 @hbd.error
 async def hbd_error(ctx, error):
     if isinstance(error, commands.BadArgument):
@@ -866,6 +872,88 @@ async def sendmelody_error(ctx, error):
     if isinstance(error, commands.BadArgument):
         await ctx.send('I\'m sorry, but your target is invalid.')
     logger.warning(f'AUTHOR: {ctx.message.author} | METHOD: sendmelody | ERROR: {error}')
+
+####################################################################
+#=======================   GROUPS MODULE    ========================
+####################################################################
+
+@bot.command(name='groups', aliases=['lg'])
+async def list_groups(ctx):
+    '''
+    List groups(roles) that you can join.
+    '''
+    groups = get_json(group_data)
+
+    embed = discord.Embed()
+    embed.title = ':coffee: *Coffee Shop Groups* :coffee:'
+
+    desc = ''
+    for group_name in groups.keys():
+        desc += f'**{group_name}**\n'
+    
+    embed.description = desc
+    await ctx.send(embed=embed)
+
+
+@bot.command(name='creategroup', aliases=['cg'])
+async def create_group(ctx, group):
+    '''
+    Create a group (role).
+    '''
+    user = ctx.message.author
+    groups = get_json(group_data)
+    if groups.get(group.lower()) is not None:
+        return await ctx.send('The group already exists.')
+    
+    # create role, name is based on user's input but saved in json as lowercase
+    await user.guild.create_role(name=group,mentionable=True)
+    role = get(user.guild.roles, name=group)
+    await role.edit(position=14)
+
+    groups[group.lower()] = role.id
+
+    embed = discord.Embed(color=discord.Color.greyple())
+    embed.description = f'{role.mention} successfully created. :relieved:'
+    await ctx.send(embed=embed)
+
+    save_json(group_data, groups)
+
+@bot.command(name='join')
+async def join_group(ctx, group):
+    '''
+    Join a group (role).
+    '''
+    user = ctx.message.author
+    groups = get_json(group_data)
+    if groups.get(group.lower()) is None:
+        return await ctx.send(f'No group *{group}* found, check the spelling.')
+
+    role = get(user.guild.roles, id=groups[group.lower()])
+    await user.add_roles(role)
+    await ctx.send(f'You have successfully joined *{group}*.')
+
+@bot.command(name='leave')
+async def leave_group(ctx, group):
+    '''
+    Leave a group (role).
+    '''
+    user = ctx.message.author
+    groups = get_json(group_data)
+    if groups.get(group.lower()) is None:
+        return await ctx.send(f'No group *{group}* found, check the spelling.')
+
+    role = get(user.guild.roles, id=groups[group.lower()])
+    await user.remove_roles(role)
+    await ctx.send(f'You have successfully left *{group}*.')
+
+
+# not high prio
+@bot.command(name='deletegroup', aliases=['dg'])
+async def delete_group(ctx, group):
+    '''
+    Create a group (role).
+    '''
+    pass
 
 
 if __name__ == '__main__':

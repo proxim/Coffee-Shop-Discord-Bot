@@ -906,7 +906,7 @@ async def create_group(ctx, group):
         return await ctx.send('The group already exists.')
     
     # create role, name is based on user's input but saved in json as lowercase
-    await user.guild.create_role(name=group,mentionable=True)
+    await user.guild.create_role(name=group, mentionable=True)
     role = get(user.guild.roles, name=group)
     await role.edit(position=14)
 
